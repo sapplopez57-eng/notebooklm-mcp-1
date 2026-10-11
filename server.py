@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import sys
 from contextlib import asynccontextmanager
@@ -52,7 +53,13 @@ async def list_notebooks():
     """List all notebooks in your NotebookLM account."""
     client = await get_client()
     notebooks = await client.notebooks.list()
-    return [{"id": nb.id, "title": nb.title, "source_count": nb.sources_count} for nb in notebooks]
+    # notebooklm-py 0.3.1 never populates Notebook.sources_count (stays 0),
+    # so derive the real count from the sources list for each notebook.
+    counts = await asyncio.gather(*(client.sources.list(nb.id) for nb in notebooks))
+    return [
+        {"id": nb.id, "title": nb.title, "source_count": len(sources)}
+        for nb, sources in zip(notebooks, counts)
+    ]
 
 @mcp.tool()
 async def create_notebook(title: str):
