@@ -1,7 +1,7 @@
 [project]
-name = "notebooklm-assistant"
+name = "notebooklm-mcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "MCP server that brings Google NotebookLM into Claude Desktop and Claude Code"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

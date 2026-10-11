@@ -52,7 +52,7 @@ async def list_notebooks():
     """List all notebooks in your NotebookLM account."""
     client = await get_client()
     notebooks = await client.notebooks.list()
-    return [{"id": nb.id, "title": nb.title, "source_count": nb.source_count} for nb in notebooks]
+    return [{"id": nb.id, "title": nb.title, "source_count": nb.sources_count} for nb in notebooks]
 
 @mcp.tool()
 async def create_notebook(title: str):
@@ -80,7 +80,13 @@ async def ask_notebook(notebook_id: str, question: str):
     """Ask a question based on the sources in a specific notebook."""
     client = await get_client()
     result = await client.chat.ask(notebook_id, question)
-    return {"answer": result.text, "sources": [s.title for s in result.sources]}
+    return {
+        "answer": result.answer,
+        "references": [
+            {"source_id": ref.source_id, "citation": ref.citation_number, "text": ref.cited_text}
+            for ref in result.references
+        ],
+    }
 
 @mcp.tool()
 async def get_notebook_summary(notebook_id: str):
@@ -88,7 +94,7 @@ async def get_notebook_summary(notebook_id: str):
     client = await get_client()
     # Using chat to get summary if there's no direct summary API
     result = await client.chat.ask(notebook_id, "Please provide a comprehensive summary and key insights of this notebook.")
-    return {"summary": result.text}
+    return {"summary": result.answer}
 
 @mcp.tool()
 async def generate_video_overview(notebook_id: str, instructions: str = "Create an engaging video overview of these sources."):
@@ -172,5 +178,10 @@ async def generate_data_table(notebook_id: str, instructions: str = "Extract key
     status = await client.artifacts.generate_data_table(notebook_id, instructions=instructions)
     return {"task_id": status.task_id, "status": "Task started. Check NotebookLM studio."}
 
-if __name__ == "__main__":
+def main():
+    """Entry point for running the NotebookLM MCP server over stdio."""
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()
