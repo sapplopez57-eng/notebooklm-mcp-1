@@ -1,6 +1,4 @@
-def main():
-    print("Hello from notebooklm-assistant!")
-
+from server import main
 
 if __name__ == "__main__":
     main()
